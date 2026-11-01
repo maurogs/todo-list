@@ -39,7 +39,7 @@
         <% end %>
       </div>
 
-      <div class="flex shrink-0 gap-0.5 opacity-100 transition sm:opacity-0 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100">
+      <div class="flex shrink-0 gap-0.5 opacity-100 transition [@media(hover:hover)]:opacity-0 group-focus-within:opacity-100 group-hover:opacity-100">
         <%= link_to edit_task_path(task), class: "icon-btn", aria: { label: "Editar tarea" }, title: "Editar" do %>
           <%= icon :pencil, classes: "size-4" %>
         <% end %>
