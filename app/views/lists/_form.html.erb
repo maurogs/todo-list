@@ -1,0 +1,38 @@
+<%# locals: (list:, dialog: true) %>
+<%= form_with model: list, class: "space-y-5" do |form| %>
+  <div>
+    <%= form.label :name, "Nombre", class: "label" %>
+    <%= form.text_field :name, required: true, maxlength: 40, placeholder: "Ej. Compras, Trabajo, Viaje…", autofocus: true, class: "input" %>
+  </div>
+
+  <fieldset>
+    <legend class="label">Icono</legend>
+    <div class="flex flex-wrap gap-1.5">
+      <% List::ICONS.each do |emoji| %>
+        <label class="cursor-pointer">
+          <%= form.radio_button :icon, emoji, class: "peer sr-only" %>
+          <span class="grid size-10 place-items-center rounded-xl text-xl transition hover:bg-slate-100 peer-checked:bg-indigo-100 peer-checked:ring-2 peer-checked:ring-indigo-500 peer-focus-visible:outline-2 dark:hover:bg-white/10 dark:peer-checked:bg-indigo-500/20"><%= emoji %></span>
+        </label>
+      <% end %>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend class="label">Color</legend>
+    <div class="flex flex-wrap gap-2.5">
+      <% List::COLORS.each do |color| %>
+        <label class="cursor-pointer" title="<%= color.capitalize %>">
+          <%= form.radio_button :color, color, class: "peer sr-only" %>
+          <span class="block size-8 rounded-full <%= color_styles(color)[:dot] %> ring-offset-2 ring-offset-white transition peer-checked:ring-2 peer-checked:ring-slate-900 peer-focus-visible:outline-2 dark:ring-offset-slate-900 dark:peer-checked:ring-white"></span>
+        </label>
+      <% end %>
+    </div>
+  </fieldset>
+
+  <div class="flex justify-end gap-2 pt-1">
+    <% if dialog %>
+      <button type="button" class="btn-ghost" data-action="dialog#close">Cancelar</button>
+    <% end %>
+    <%= form.submit list.new_record? ? "Crear lista" : "Guardar", class: "btn-primary" %>
+  </div>
+<% end %>

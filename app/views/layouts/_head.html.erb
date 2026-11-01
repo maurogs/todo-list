@@ -1,0 +1,23 @@
+<title><%= content_for(:title) ? "#{content_for(:title)} · Listo" : "Listo — tus tareas, en orden" %></title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Listo es una app sencilla y bonita para organizar tus tareas en listas.">
+<meta name="theme-color" content="#4f46e5">
+<%= csrf_meta_tags %>
+<%= csp_meta_tag %>
+<%# Page refreshes are morphed, so navigation feels like a single page app. %>
+<% turbo_refreshes_with method: :morph, scroll: :preserve %>
+<%= yield :head %>
+
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="/icon.png">
+
+<%# Apply the saved theme before first paint to avoid a flash. %>
+<script>
+  if (localStorage.theme === "dark" || (!("theme" in localStorage) && matchMedia("(prefers-color-scheme: dark)").matches)) {
+    document.documentElement.classList.add("dark")
+  }
+</script>
+
+<%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+<%= javascript_importmap_tags %>

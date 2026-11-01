@@ -1,0 +1,22 @@
+<%= turbo_frame_tag dom_id(@task), class: "min-w-0 flex-1" do %>
+  <%= form_with model: @task, class: "space-y-3", data: { turbo_frame: "_top" } do |form| %>
+    <%= form.text_field :title, required: true, maxlength: 200, autofocus: true, class: "input", aria: { label: "Título" } %>
+    <%= form.text_area :notes, rows: 2, maxlength: 2000, placeholder: "Notas (opcional)", class: "input", aria: { label: "Notas" } %>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <%= form.label :due_on, "Fecha límite", class: "label" %>
+        <%= form.date_field :due_on, class: "input" %>
+      </div>
+      <div>
+        <%= form.label :priority, "Prioridad", class: "label" %>
+        <%= form.select :priority, Task.priorities.keys.map { |p| [ ApplicationHelper::PRIORITY_LABELS[p], p ] }, {}, class: "input" %>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-2">
+      <%= link_to "Cancelar", request.referer || list_path(@task.list), class: "btn-ghost", data: { turbo_frame: "_top" } %>
+      <%= form.submit "Guardar", class: "btn-primary" %>
+    </div>
+  <% end %>
+<% end %>

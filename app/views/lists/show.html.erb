@@ -1,0 +1,74 @@
+<% content_for :title, @list.name %>
+<% styles = color_styles(@list.color) %>
+
+<header class="flex items-start gap-4">
+  <span class="grid size-14 shrink-0 place-items-center rounded-2xl text-3xl <%= styles[:soft] %>"><%= @list.icon %></span>
+  <div class="min-w-0 flex-1">
+    <h1 class="truncate text-2xl font-extrabold tracking-tight sm:text-3xl"><%= @list.name %></h1>
+    <p class="mt-1 text-sm text-slate-500">
+      <% if @list.total_count.zero? %>
+        Aún no hay tareas
+      <% else %>
+        <%= @list.total_count - @list.pending_count %> de <%= pluralize_tasks(@list.total_count) %> completadas
+      <% end %>
+    </p>
+  </div>
+
+  <div class="flex gap-1" data-controller="dialog">
+    <button type="button" class="icon-btn" data-action="dialog#open" aria-label="Editar lista" title="Editar lista">
+      <%= icon :pencil %>
+    </button>
+    <%= button_to list_path(@list), method: :delete, class: "icon-btn hover:!text-rose-600", title: "Eliminar lista",
+          aria: { label: "Eliminar lista" },
+          form: { data: { turbo_confirm: "¿Eliminar «#{@list.name}» y todas sus tareas?" } } do %>
+      <%= icon :trash %>
+    <% end %>
+    <%= render "lists/dialog", title: "Editar lista", list: @list %>
+  </div>
+</header>
+
+<div class="mt-6 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800" role="progressbar"
+     aria-valuenow="<%= @list.progress %>" aria-valuemin="0" aria-valuemax="100">
+  <div class="h-full rounded-full transition-all duration-500 <%= styles[:bar] %>" style="width: <%= @list.progress %>%"></div>
+</div>
+
+<%= render "tasks/new_form", list: @list %>
+
+<section class="mt-8">
+  <% if @pending.empty? && @completed.empty? %>
+    <div class="card px-6 py-14 text-center">
+      <p class="text-4xl">🌱</p>
+      <h2 class="mt-3 font-bold">Esta lista está vacía</h2>
+      <p class="mt-1 text-sm text-slate-500">Escribe arriba tu primera tarea y pulsa Enter.</p>
+    </div>
+  <% elsif @pending.empty? %>
+    <div class="card px-6 py-10 text-center">
+      <p class="text-4xl">🎉</p>
+      <h2 class="mt-3 font-bold">¡Todo hecho!</h2>
+      <p class="mt-1 text-sm text-slate-500">No te queda nada pendiente en esta lista.</p>
+    </div>
+  <% else %>
+    <ul class="space-y-2" data-controller="sortable" data-sortable-url-value="<%= sort_tasks_path %>"
+        data-action="dragstart->sortable#start dragover->sortable#over dragend->sortable#end">
+      <% @pending.each do |task| %>
+        <%= render "tasks/task", task: task, color: @list.color, sortable: true %>
+      <% end %>
+    </ul>
+  <% end %>
+</section>
+
+<% if @completed.any? %>
+  <details class="group mt-8" <%= "open" if @pending.empty? || @completed.size <= 5 %>>
+    <summary class="flex list-none items-center gap-2 text-sm font-semibold text-slate-500 select-none">
+      <%= icon :chevron, classes: "size-4 transition group-open:rotate-180" %>
+      Completadas (<%= @completed.size %>)
+      <%= button_to "Limpiar", clear_completed_list_path(@list), method: :delete, class: "ml-2 text-xs font-medium text-slate-400 hover:text-rose-600",
+            form: { class: "contents", data: { turbo_confirm: "¿Eliminar las tareas completadas?" } } %>
+    </summary>
+    <ul class="mt-3 space-y-2">
+      <% @completed.each do |task| %>
+        <%= render "tasks/task", task: task, color: @list.color %>
+      <% end %>
+    </ul>
+  </details>
+<% end %>

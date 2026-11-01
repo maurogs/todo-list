@@ -1,0 +1,69 @@
+<div class="fixed inset-0 z-30 hidden bg-slate-900/40 backdrop-blur-sm lg:hidden"
+     data-sidebar-target="backdrop" data-action="click->sidebar#close"></div>
+
+<aside id="sidebar"
+       class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full flex-col border-r border-slate-200 bg-white transition-transform duration-200 lg:static lg:translate-x-0 dark:border-slate-800 dark:bg-slate-900"
+       data-sidebar-target="panel">
+  <div class="flex items-center gap-3 px-5 pt-6 pb-4">
+    <%= render "shared/logo" %>
+    <span class="text-xl font-extrabold tracking-tight">Listo</span>
+    <button type="button" class="icon-btn ml-auto lg:hidden" data-action="sidebar#close" aria-label="Cerrar menú">
+      <%= icon :x %>
+    </button>
+  </div>
+
+  <nav class="flex-1 overflow-y-auto px-3 pb-4" data-action="click->sidebar#close">
+    <%= link_to root_path,
+          class: "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition #{current_page?(root_path) ? 'bg-indigo-50 text-indigo-900 dark:bg-indigo-500/15 dark:text-indigo-100' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5'}",
+          aria: { current: (current_page?(root_path) ? "page" : nil) } do %>
+      <%= icon :home, classes: "size-5" %> Inicio
+    <% end %>
+
+    <div class="mt-6 mb-2 flex items-center justify-between px-3">
+      <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Mis listas</h2>
+      <button type="button" class="icon-btn size-6" aria-label="Nueva lista" title="Nueva lista"
+              data-action="dialog#open">
+        <%= icon :plus, classes: "size-4", stroke: 2.25 %>
+      </button>
+    </div>
+
+    <div class="space-y-0.5" data-controller="sortable" data-sortable-url-value="<%= sort_lists_path %>"
+         data-action="dragstart->sortable#start dragover->sortable#over dragend->sortable#end">
+      <% sidebar_lists.each do |list| %>
+        <% styles = color_styles(list.color) %>
+        <% active = current_page?(list_path(list)) %>
+        <%= link_to list_path(list), id: dom_id(list, :nav), data: { sortable_id: list.id },
+              class: "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition #{active ? styles[:active] : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5'}",
+              aria: { current: (active ? "page" : nil) } do %>
+          <span class="w-5 text-center text-base leading-none"><%= list.icon %></span>
+          <span class="flex-1 truncate"><%= list.name %></span>
+          <% pending = list.tasks.count { |t| !t.completed? } %>
+          <% if pending.positive? %>
+            <span class="rounded-full px-2 py-0.5 text-xs font-semibold <%= styles[:soft] %>"><%= pending %></span>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <% if sidebar_lists.empty? %>
+        <p class="px-3 py-2 text-sm text-slate-400">Aún no tienes listas.</p>
+      <% end %>
+    </div>
+  </nav>
+
+  <div class="flex items-center gap-3 border-t border-slate-200 p-4 dark:border-slate-800">
+    <span class="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-bold text-white">
+      <%= current_user.name[0].upcase %>
+    </span>
+    <div class="min-w-0 flex-1">
+      <p class="truncate text-sm font-semibold"><%= current_user.name %></p>
+      <p class="truncate text-xs text-slate-400"><%= current_user.email_address %></p>
+    </div>
+    <button type="button" class="icon-btn" data-action="theme#toggle" aria-label="Cambiar tema" title="Cambiar tema">
+      <%= icon :moon, classes: "size-5 dark:hidden" %>
+      <%= icon :sun, classes: "hidden size-5 dark:block" %>
+    </button>
+    <%= button_to session_path, method: :delete, class: "icon-btn", title: "Cerrar sesión", aria: { label: "Cerrar sesión" }, form: { data: { turbo_frame: "_top" } } do %>
+      <%= icon :logout %>
+    <% end %>
+  </div>
+</aside>

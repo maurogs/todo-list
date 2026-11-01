@@ -1,0 +1,58 @@
+<% content_for :title, "Inicio" %>
+
+<header>
+  <p class="text-sm font-medium text-slate-500"><%= long_today %></p>
+  <h1 class="mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl">
+    <%= greeting %>, <span class="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-violet-400"><%= current_user.first_name %></span> 👋
+  </h1>
+</header>
+
+<dl class="mt-8 grid grid-cols-3 gap-3 sm:gap-4">
+  <% [
+    [ "Pendientes", @pending_count, "text-indigo-600 dark:text-indigo-400" ],
+    [ "Hechas esta semana", @completed_this_week, "text-emerald-600 dark:text-emerald-400" ],
+    [ "Listas", sidebar_lists.size, "text-violet-600 dark:text-violet-400" ]
+  ].each do |label, value, tone| %>
+    <div class="card p-4 sm:p-5">
+      <dd class="text-3xl font-extrabold tracking-tight <%= tone %>"><%= value %></dd>
+      <dt class="mt-1 text-xs font-medium text-slate-500 sm:text-sm"><%= label %></dt>
+    </div>
+  <% end %>
+</dl>
+
+<%= render "home/section", title: "Vencidas", tasks: @overdue, tone: "text-rose-600 dark:text-rose-400" %>
+<%= render "home/section", title: "Para hoy", tasks: @today, tone: "text-indigo-600 dark:text-indigo-400" %>
+<%= render "home/section", title: "Próximos 7 días", tasks: @upcoming %>
+
+<% if [ @overdue, @today, @upcoming ].all?(&:empty?) %>
+  <div class="card mt-8 px-6 py-14 text-center">
+    <p class="text-4xl"><%= @pending_count.zero? ? "🎉" : "☀️" %></p>
+    <h2 class="mt-3 font-bold"><%= @pending_count.zero? ? "No tienes nada pendiente" : "Nada urgente por ahora" %></h2>
+    <p class="mx-auto mt-1 max-w-xs text-sm text-slate-500">
+      Aquí verás las tareas con fecha límite. Abre una lista y añade una fecha a tus tareas para planificar tu semana.
+    </p>
+  </div>
+<% end %>
+
+<% if sidebar_lists.any? %>
+  <section class="mt-10">
+    <h2 class="mb-3 text-sm font-semibold text-slate-500">Tus listas</h2>
+    <div class="grid gap-3 sm:grid-cols-2">
+      <% sidebar_lists.each do |list| %>
+        <% styles = color_styles(list.color) %>
+        <%= link_to list, class: "card group block p-4 transition hover:-translate-y-0.5 hover:shadow-md" do %>
+          <div class="flex items-center gap-3">
+            <span class="grid size-10 place-items-center rounded-xl text-xl <%= styles[:soft] %>"><%= list.icon %></span>
+            <div class="min-w-0 flex-1">
+              <p class="truncate font-semibold"><%= list.name %></p>
+              <p class="text-xs text-slate-500"><%= list.pending_count %> pendientes · <%= list.progress %>%</p>
+            </div>
+          </div>
+          <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+            <div class="h-full rounded-full <%= styles[:bar] %>" style="width: <%= list.progress %>%"></div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  </section>
+<% end %>
