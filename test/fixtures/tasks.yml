@@ -1,0 +1,38 @@
+dishes:
+  list: home
+  title: Fregar los platos
+  priority: 0
+  position: 0
+
+laundry:
+  list: home
+  title: Poner la lavadora
+  priority: 2
+  due_on: <%= Date.current %>
+  position: 1
+
+repairs:
+  list: home
+  title: Llamar al fontanero
+  priority: 3
+  due_on: <%= Date.current - 2 %>
+  position: 2
+
+taxes:
+  list: home
+  title: Declaración hecha
+  priority: 0
+  completed_at: <%= 1.day.ago.to_fs(:db) %>
+  position: 3
+
+report:
+  list: work
+  title: Enviar informe
+  priority: 1
+  position: 0
+
+secret:
+  list: bobs
+  title: Tarea privada de Bob
+  priority: 0
+  position: 0

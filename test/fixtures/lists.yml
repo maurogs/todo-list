@@ -1,0 +1,20 @@
+home:
+  user: alice
+  name: Casa
+  icon: 🏠
+  color: amber
+  position: 0
+
+work:
+  user: alice
+  name: Trabajo
+  icon: 💼
+  color: indigo
+  position: 1
+
+bobs:
+  user: bob
+  name: Lista de Bob
+  icon: 📝
+  color: sky
+  position: 0
