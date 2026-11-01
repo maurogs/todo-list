@@ -48,4 +48,10 @@ class TodoFlowTest < ApplicationSystemTestCase
     assert_selector "#sidebar", text: "Casa"
     assert_no_selector "#sidebar", text: "Lista de Bob"
   end
+
+  private
+    # Row actions only show on hover (or keyboard focus) on wide screens.
+    def hover_task_actions
+      find("p", match: :first).hover
+    end
 end
