@@ -49,3 +49,28 @@ La app se despliega con el `Dockerfile` incluido. Variables de entorno necesaria
 
 - El contenedor escucha en el puerto **80** y expone el healthcheck en `/up`.
 - La base de datos SQLite vive en `/rails/storage`: **monta ahí un volumen persistente** o se perderán los datos en cada despliegue.
+
+## Despliegue automático (self-hosted runner)
+
+Coolify vive en la red local, así que GitHub no puede avisarle con un webhook. En su lugar,
+`.github/workflows/deploy.yml` se ejecuta en un runner instalado **dentro de la LAN** cuando la CI
+termina en verde en un push a `main`, y llama a la API de Coolify.
+
+```
+git push → CI (GitHub) ✅ → Deploy (runner en la LAN) → API de Coolify → build y rolling update
+```
+
+### Secrets del repositorio (Settings → Secrets and variables → Actions)
+
+| Secret | Valor |
+| --- | --- |
+| `COOLIFY_URL` | `http://192.168.1.177:8000` |
+| `COOLIFY_TOKEN` | Token de la API de Coolify (Keys & Tokens → API tokens) con permiso de deploy |
+| `COOLIFY_APP_UUID` | UUID de la aplicación (aparece en la URL de la app en Coolify) |
+
+### Runner
+
+Máquina de la LAN (p. ej. un LXC Debian en Proxmox) con acceso a `COOLIFY_URL`, `curl` y `jq`.
+Se registra con la etiqueta `coolify` (Settings → Actions → Runners → New self-hosted runner) y se
+instala como servicio. Al ser un repositorio público, el workflow de deploy solo se dispara por pushes
+a `main` tras una CI correcta; no uses este runner para workflows de pull requests.

@@ -1,0 +1,70 @@
+name: Deploy
+
+# Runs only after the CI workflow succeeded for a push to main. It executes on a
+# self-hosted runner inside the home network, because Coolify is not reachable
+# from the internet. See "Despliegue automático" in the README.
+on:
+  workflow_run:
+    workflows: [ CI ]
+    types: [ completed ]
+    branches: [ main ]
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # Never deploy from pull requests (including forks) or failed CI runs.
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.repository == 'maurogs/todo-list'
+    runs-on: [ self-hosted, coolify ]
+    timeout-minutes: 20
+    env:
+      COOLIFY_URL: ${{ secrets.COOLIFY_URL }}
+      COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+      COOLIFY_APP_UUID: ${{ secrets.COOLIFY_APP_UUID }}
+    steps:
+      - name: Check configuration
+        run: |
+          for var in COOLIFY_URL COOLIFY_TOKEN COOLIFY_APP_UUID; do
+            if [ -z "${!var}" ]; then
+              echo "::error::Missing repository secret $var"
+              exit 1
+            fi
+          done
+
+      - name: Trigger deployment in Coolify
+        id: trigger
+        run: |
+          response=$(curl -fsS --max-time 30 \
+            -H "Authorization: Bearer $COOLIFY_TOKEN" \
+            "$COOLIFY_URL/api/v1/deploy?uuid=$COOLIFY_APP_UUID&force=false")
+          echo "$response"
+          deployment_uuid=$(echo "$response" | jq -r '.deployments[0].deployment_uuid // empty')
+          if [ -z "$deployment_uuid" ]; then
+            echo "::error::Coolify did not return a deployment uuid"
+            exit 1
+          fi
+          echo "deployment_uuid=$deployment_uuid" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for the deployment to finish
+        env:
+          DEPLOYMENT_UUID: ${{ steps.trigger.outputs.deployment_uuid }}
+        run: |
+          for attempt in $(seq 1 90); do
+            status=$(curl -fsS --max-time 30 \
+              -H "Authorization: Bearer $COOLIFY_TOKEN" \
+              "$COOLIFY_URL/api/v1/deployments/$DEPLOYMENT_UUID" | jq -r '.status')
+            echo "[$attempt] status: $status"
+            case "$status" in
+              finished) echo "Deployment finished."; exit 0 ;;
+              failed|cancelled*) echo "::error::Deployment $status"; exit 1 ;;
+            esac
+            sleep 10
+          done
+          echo "::error::Timed out waiting for the deployment"
+          exit 1
