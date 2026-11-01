@@ -40,10 +40,23 @@ jobs:
       - name: Trigger deployment in Coolify
         id: trigger
         run: |
-          response=$(curl -fsS --max-time 30 \
-            -H "Authorization: Bearer $COOLIFY_TOKEN" \
-            "$COOLIFY_URL/api/v1/deploy?uuid=$COOLIFY_APP_UUID&force=false")
+          url="$COOLIFY_URL/api/v1/deploy?uuid=$COOLIFY_APP_UUID&force=false"
+
+          # Newer Coolify versions expect POST; older ones only accept GET.
+          for method in POST GET; do
+            code=$(curl -sS --max-time 30 -o response.json -w '%{http_code}' \
+              -X "$method" -H "Authorization: Bearer $COOLIFY_TOKEN" "$url")
+            echo "$method $COOLIFY_URL/api/v1/deploy -> HTTP $code"
+            [ "$code" != "405" ] && break
+          done
+
+          response=$(cat response.json)
+          rm -f response.json
           echo "$response"
+          if [ "${code:0:1}" != "2" ]; then
+            echo "::error::Coolify API returned HTTP $code"
+            exit 1
+          fi
           deployment_uuid=$(echo "$response" | jq -r '.deployments[0].deployment_uuid // empty')
           if [ -z "$deployment_uuid" ]; then
             echo "::error::Coolify did not return a deployment uuid"
