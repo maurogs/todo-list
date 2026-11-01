@@ -1,25 +1,42 @@
 <% content_for :title, "Iniciar sesión" %>
 
-<h1 class="text-xl font-bold tracking-tight">Te damos la bienvenida</h1>
-<p class="mt-1 text-sm text-slate-500">Inicia sesión para ver tus listas.</p>
+<h1 class="text-3xl font-extrabold tracking-tight">Te damos la bienvenida</h1>
+<p class="mt-2 text-slate-500">Inicia sesión para ver tus listas.</p>
 
-<%= form_with url: session_path, class: "mt-6 space-y-4" do |form| %>
+<% if flash[:alert].present? %>
+  <p class="mt-6 flex items-center gap-2 rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 dark:bg-rose-500/15 dark:text-rose-300" role="alert">
+    <%= flash[:alert] %>
+  </p>
+<% elsif flash[:notice].present? %>
+  <p class="mt-6 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300" role="status">
+    <%= flash[:notice] %>
+  </p>
+<% end %>
+
+<%= form_with url: session_path, class: "mt-8 space-y-5" do |form| %>
   <div>
     <%= form.label :email_address, "Email", class: "label" %>
     <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username",
           placeholder: "tu@email.com", value: params[:email_address], class: "input" %>
   </div>
 
-  <div>
+  <div data-controller="password-toggle">
     <%= form.label :password, "Contraseña", class: "label" %>
-    <%= form.password_field :password, required: true, autocomplete: "current-password",
-          placeholder: "••••••••", maxlength: 72, class: "input" %>
+    <div class="relative">
+      <%= form.password_field :password, required: true, autocomplete: "current-password",
+            placeholder: "••••••••", maxlength: 72, class: "input pr-11", data: { password_toggle_target: "input" } %>
+      <button type="button" class="icon-btn absolute top-1/2 right-1.5 -translate-y-1/2"
+              data-action="password-toggle#toggle" aria-label="Mostrar u ocultar la contraseña">
+        <span data-password-toggle-target="show"><%= icon :eye %></span>
+        <span data-password-toggle-target="hide" class="hidden"><%= icon :eye_slash %></span>
+      </button>
+    </div>
   </div>
 
-  <%= form.submit "Iniciar sesión", class: "btn-primary w-full" %>
+  <%= form.submit "Iniciar sesión", class: "btn-primary w-full !py-3" %>
 <% end %>
 
-<p class="mt-6 text-center text-sm text-slate-500">
+<p class="mt-8 text-center text-sm text-slate-500">
   ¿No tienes cuenta?
-  <%= link_to "Crear una", new_registration_path, class: "font-semibold text-indigo-600 hover:underline dark:text-indigo-400" %>
+  <%= link_to "Crea una gratis", new_registration_path, class: "font-semibold text-indigo-600 hover:underline dark:text-indigo-400" %>
 </p>
