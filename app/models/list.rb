@@ -1,6 +1,6 @@
 class List < ApplicationRecord
   COLORS = %w[indigo violet pink rose orange amber emerald sky].freeze
-  ICONS = %w[📝 🏠 💼 🛒 🎯 ✈️ 📚 💪 🎉 💡 🍳 🌱].freeze
+  ICONS = %w[📝 🏠 💼 🛒 🎯 ✈️ 📚 💪 🎉 💡 🍳 🌱 📦].freeze
 
   belongs_to :user
   has_many :tasks, -> { order(:position, :id) }, dependent: :destroy
